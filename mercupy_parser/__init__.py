@@ -7,6 +7,7 @@ from urllib.parse import urljoin as join
 
 import httpx
 from httpx import Response
+import requests
 
 
 def urljoin(*terms: str) -> str:
@@ -21,6 +22,32 @@ class Mercupy:
         api_endpoint = api_endpoint or os.environ.get("API_ENDPOINT", "http://0.0.0.0:4000")
         self.api_endpoint = urljoin(api_endpoint, "parser")
         self.verbose = verbose
+    
+    
+    def parse_prefetched(self, html: str, url: Optional[str]):
+        """
+        Send a pre-fetched HTML document to Mercury Parser. Sync-only at the moment.
+
+        Parameters
+        ----------
+        html : str
+            HTML document to parse. Converted to UTF-8 before sending.
+        url : Optional[str]
+            Optional URL where the document was fetched.
+            If None, Mercury will attempt inferring the URL (and usually succeeds).
+            Should that fail, URL will be set to 'http://example.com/'
+
+        Returns
+        -------
+        requests.Response
+            Response from the Mercury API, hopefully with the parsed article.
+
+        """
+        payload = {'html': html.encode('utf-8')}
+        if url:
+            payload['url'] = url
+        
+        return requests.post(self.api_endpoint, json=payload)
 
     def parser(self,
                urls: Union[str, List[str]],
