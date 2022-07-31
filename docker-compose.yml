@@ -6,6 +6,7 @@ services:
     volumes:
     - ./Mods/routes.js:/app/routes.js
     - ./Mods/index.js:/app/index.js
+    - ./Mods/mercury.js:/app/node_modules/@postlight/mercury-parser/dist/mercury.js
     expose:
       - "3000"
   nginx-load-balancer:

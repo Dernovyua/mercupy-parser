@@ -8,6 +8,7 @@ from urllib.parse import urljoin as join
 import httpx
 from httpx import Response
 import requests
+import json
 
 
 def urljoin(*terms: str) -> str:
@@ -24,7 +25,7 @@ class Mercupy:
         self.verbose = verbose
     
     
-    def parse_prefetched(self, html: str, url: Optional[str]):
+    def parse_prefetched(self, html: str, url: Optional[str], custom_extractor: Optional[dict]):
         """
         Send a pre-fetched HTML document to Mercury Parser. Sync-only at the moment.
 
@@ -34,20 +35,39 @@ class Mercupy:
             HTML document to parse. Converted to UTF-8 before sending.
         url : Optional[str]
             Optional URL where the document was fetched.
-            If None, Mercury will attempt inferring the URL (and usually succeeds).
+            If None, Mercury will pull URL from the 'canonical' tag in the HTML.
             Should that fail, URL will be set to 'http://example.com/'
+        custom_extractor: Optional[dict]
+            Optional custom extractor to provide Mercury with.
+            See Mercury Parser source for examples.
+            Note that 'full' extractors are not required.
+            I.e. you may override 'title' with a selector,
+            and leave other fields unspecified.
+            Mercury will use the override for the title
+            and infer the rest using its default heuristics.
 
         Returns
         -------
         requests.Response
             Response from the Mercury API, hopefully with the parsed article.
+            Take note that the fields will be HTML-escaped.
+            Postprocess with html.unescape() for an as-is representation.
 
         """
-        payload = {'html': html.encode('utf-8')}
-        if url:
-            payload['url'] = url
+        headers = {'Content-Type': 'text/html'}
         
-        return requests.post(self.api_endpoint, json=payload)
+        if url:
+            headers['URL'] = url
+            
+        if custom_extractor:
+            headers['Custom-Extractor'] = json.dumps(custom_extractor).encode('utf-8')
+        
+        
+        return requests.post(
+                self.api_endpoint,
+                headers=headers,
+                data=html.encode('utf-8')
+            ).json()
 
     def parser(self,
                urls: Union[str, List[str]],

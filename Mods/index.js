@@ -11,6 +11,7 @@ const app = express();
 app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 app.use(bodyParser.json({ extended: true, limit: "50mb" }));
+app.use(bodyParser.text({ inflate: true, limit: "50mb", type: "text/*" }));
 app.use(morgan('tiny'));
 
 app.use('/', routes);
