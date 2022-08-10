@@ -2,11 +2,7 @@ version: "3"
 
 services:
   mercury-parser:
-    image: wangqiru/mercury-parser-api
-    volumes:
-    - ./Mods/routes.js:/app/routes.js
-    - ./Mods/index.js:/app/index.js
-    - ./Mods/mercury.js:/app/node_modules/@postlight/mercury-parser/dist/mercury.js
+    build: .
     expose:
       - "3000"
   nginx-load-balancer:
